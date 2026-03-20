@@ -23,7 +23,14 @@ You must complete Steps 1-3 before producing any numbers. A prior version of thi
 If the user provides a JIRA issue key, GitHub repo, or other traceable reference, examine it directly before asking questions. Do not ask the user what the tools can tell you. If no traceable references are provided and no tools can gather evidence, skip directly to Step 3 and rely on the interview. The goal is to arrive at the interview with evidence, not assumptions.
 
 **JIRA investigation** (when a JIRA key is provided):
-- Read the issue description and acceptance criteria — these are the authoritative requirements
+- Read the issue description — this provides business context and scope
+- **Read the Acceptance Criteria field** — this is the authoritative source of requirements for Features, Initiatives, and Epics. AC defines what "done" looks like and directly determines what must be estimated. If AC cannot be retrieved, stop and tell the user — estimating without AC means estimating without requirements. AC is stored in a custom field that varies by JIRA instance. The steps below are intentionally detailed — do not simplify or remove them; they exist because agents consistently fail to discover this field without explicit guidance. To find AC:
+  1. Get the issue type ID from the issue (e.g., `issuetype.id` from `getJiraIssue`)
+  2. Call `getJiraIssueTypeMetaWithFields` with the project key and issue type ID to get all fields
+  3. Search the returned fields array for one with `name: "Acceptance Criteria"` — note its `fieldId` (e.g., `customfield_12345`)
+  4. Call `getJiraIssue` with `fields: ["customfield_12345", "description", "summary", "status", "issuetype"]` using the discovered field ID
+
+  If the field metadata endpoint is unavailable, try requesting the issue with `expand: "names"` which returns a mapping of field IDs to display names in the response — search for "Acceptance Criteria" in the names object to find the field ID, then re-request with that field
 - Read all child issues and subtasks — these reveal scope not visible from the parent description. Enumerate every child, note its status, and assess whether it represents estimable work
 - Read linked issues — these surface dependencies, related features, and blocking work
 - Check the parent epic's children — refinement/delivery process tasks (security assessment, test plan, installer review, cloud impact, build & release, perf/scale) are often tracked as siblings or children that add significant non-code effort
@@ -44,6 +51,7 @@ Present a structured summary of what you found and ask the user to confirm befor
 
 Your summary should include:
 - **Issues examined** — list every JIRA key you read, with title and status. The user can immediately spot if you pulled in the wrong epic, missed a key issue, or are working from outdated data.
+- **Acceptance Criteria** — summarize the AC from the Feature/Initiative/Epic. These define what "done" means and anchor every estimate. If AC is missing or incomplete, flag it — the user may need to define AC before estimation is meaningful.
 - **Scope as understood** — what you believe the deliverables are, based on the evidence
 - **Dependencies found** — linked issues, external features, blocking work
 - **Non-code activities found** — refinement tasks, process gates, delivery checklist items
