@@ -5,13 +5,23 @@ A Claude Code skill for estimating software development work where AI writes imp
 
 ## What It Does
 
-When triggered, the skill guides Claude through an interactive estimation workflow:
+When triggered, the skill guides Claude through a structured estimation workflow:
 
-1. **Asks questions first** — gathers context about the task, specs, tooling, team, and codebase before producing any numbers. Every assumption is a failure; clarity comes from asking.
-2. **Classifies the task** by spec quality + task type into Categories A-D, determining the appropriate multiplier range (0.50x - 1.25x of traditional estimates).
-3. **Estimates by phase** across the spec-driven SDLC: Specification (20-30%), Implementation (5-15%), Verification (25-35%), Non-Code (25-35%).
-4. **Produces a structured estimate** with phase breakdown, adjustment factors, risk ranges, assumptions list, and traditional comparison.
-5. **Flags anti-patterns** like scope creep, skipping specs, or trusting self-reported velocity.
+1. **Researches first** — if a JIRA key, repo, or design doc is provided, examines it directly before asking questions. Reads the issue description, discovers and reads the Acceptance Criteria field, enumerates child issues, checks linked issues for dependencies, and inspects the parent epic for refinement/delivery process tasks. Does not ask the user what tools can tell it.
+2. **Confirms findings** — presents a structured summary of everything examined (JIRA keys with titles and status, AC summary, scope, dependencies, non-code activities, codebase observations, gaps) and waits for user confirmation before proceeding. Wrong inputs produce wrong estimates.
+3. **Fills gaps** — asks only about what the research could not answer: AI workflow, team experience, verification approach, risk tolerance, parallel capacity.
+4. **Classifies the task** by spec quality + task type into Categories A-D, determining the appropriate multiplier range (0.50x - 1.25x of traditional estimates). Complex tasks get per-component classification.
+5. **Estimates by phase** across the spec-driven SDLC: Specification (20-30%), Implementation (5-15%), Verification (25-35%), Non-Code (25-35%). Supports experience-tier variants (beginner/experienced/expert) and mixed skill levels per workstream.
+6. **Analyzes dependencies and parallelization** — for multi-component tasks, produces Mermaid dependency graphs, workstream definitions, critical path analysis, and calendar projections based on user-confirmed parallel capacity.
+7. **Produces a structured estimate** with phase breakdown, adjustment factors, risk ranges, assumptions with quantified dependency costs, traditional comparison, and per-deliverable rationale appendix.
+8. **Flags anti-patterns** like scope creep, skipping specs, or trusting self-reported velocity.
+
+## Key Principles
+
+- **Every assumption is a failure.** Clarity comes from asking and from reading the data.
+- **Estimate in person-days**, not calendar time. Calendar projections are capacity planning.
+- **Use "workstream" not "developer"** for parallel capacity units. Staffing is separate from estimation.
+- **Acceptance Criteria are the requirements.** If AC can't be retrieved, stop — estimating without AC means estimating without requirements.
 
 ## Key Numbers
 
@@ -28,14 +38,18 @@ When triggered, the skill guides Claude through an interactive estimation workfl
 ## Repository Structure
 
 ```
-SKILL.md                               The skill
-research/
+SKILL.md                               The skill (core workflow, always loaded)
+references/
+  complex-estimation.md                Gate structure, mixed skills, parallelization, rationale appendix
   estimation-methodology.md            Full analysis with worked examples (84 citations)
+  tooling.md                           Spec-kit tooling landscape overview
+research/
+  estimation-methodology.md            Source research document
   citations.md                         Numbered sources with URLs
   reference/                           8 dimension reference files
   audit/                               Citation audit + consistency review
 tooling/
-  README.md                            Spec-kit tooling landscape overview
+  README.md                            Tooling landscape overview
   sdd-platforms.md                     Spec-Kit, Kiro, Tessl, OpenSpec
   ide-integration.md                   Claude Code & Cursor integration
   estimation-adjacent.md               Tools for estimation from specs
