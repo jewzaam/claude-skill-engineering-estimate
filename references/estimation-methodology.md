@@ -26,6 +26,7 @@ Traditional estimation assumes humans write code. In spec-driven AI development 
 9. [Non-Code Work Adjustments](#9-non-code-work-adjustments)
 10. [Recalibration Protocol](#10-recalibration-protocol)
 11. [Methodology Limitations](#11-methodology-limitations)
+12. [Tooling Impact on Estimation](#12-tooling-impact-on-estimation)
 
 ---
 
@@ -423,6 +424,60 @@ Using spec-driven SDLC proportions:
 
 ---
 
+## 12. Tooling Impact on Estimation
+
+*Added March 2026 based on landscape survey of SDD platforms, IDE integrations, estimation-adjacent tools, and tooling gaps. See `tooling/` for full findings.*
+
+### Does SDD Task Breakdown Change How We Estimate?
+
+SDD platforms (Spec-Kit, Kiro, OpenSpec) generate ordered, dependency-aware task lists from specifications. This changes the estimation workflow:
+
+- **Task classification (Section 4) becomes partially automatable.** Spec-Kit's `/speckit.checklist` and similar tools can assess spec completeness programmatically, making the A/B/C/D category assignment less subjective. Teams with SDD tooling can derive the Context Factor from tool output rather than human judgment alone.
+- **Task granularity maps to estimation units.** SDD-generated tasks are scoped as small, concrete work items with clear acceptance criteria — the same granularity estimation frameworks demand. However, **no SDD tool produces effort numbers natively.** LLMs achieve only 16% accuracy on story point estimation in controlled experiments. The evidence supports using AI for task decomposition while keeping humans on effort quantification.
+- **OpenSpec's delta markers (ADDED/MODIFIED/REMOVED) are directly useful for brownfield estimation** — they quantify scope against the current baseline, addressing a gap where most SDD tools assume greenfield.
+
+### Does Spec Validation Change the Context Factor?
+
+Yes, partially. Spec completeness is now measurable via tooling (Spec-Kit's checklist, Innoslate's NLP quality scoring), which means the "spec quality" dimension of task classification can be derived from tool output. However, spec *currency* (whether the spec reflects actual implementation) remains largely unvalidated — drift detection exists only for API boundaries (Specmatic), not arbitrary spec-to-code alignment. **The Context Readiness Assessment (Section 8) remains necessary** but can be supplemented by tool-derived quality scores for the "Specs exist for the task" factor.
+
+### Does Drift Detection Change the Rework Factor?
+
+Potentially, but tooling is immature. API-boundary drift detection (Specmatic) finds ~25% of bugs are contract mismatches, suggesting that drift detection could meaningfully reduce the Rework Factor. However:
+
+- Only API contracts have production-ready drift detection today
+- Arbitrary spec-to-code drift detection is unsolved
+- The 1.05-1.15 Rework Factor range (Section 5) **remains appropriate** for current tooling maturity
+- Teams using Specmatic or similar contract testing for API specs may use the lower end (1.05) with higher confidence
+
+### Does the Tooling Landscape Validate the SDLC Proportions?
+
+Yes. The tooling evidence reinforces rather than contradicts the phase proportions:
+
+- **Specification phase (20-30%):** SDD tooling makes this phase more visible and structured but does not necessarily shrink it. Spec-Kit's full pipeline (constitution -> specify -> clarify -> plan -> tasks) is substantial work. The 20-30% proportion is validated.
+- **Implementation phase (5-15%):** SDD tooling further compresses this by improving first-attempt accuracy (95% with specs). The lower end (5%) is achievable with mature SDD workflows.
+- **Verification phase (25-35%):** SDD tooling provides structured review contracts (review against spec rather than reverse-engineering intent), potentially making review more efficient. Kiro's property-based testing auto-generates hundreds of test cases from specs. The upper end (35%) may be conservative for teams with mature SDD + PBT. However, AI code's 2.74x vulnerability rate still demands security review.
+- **Non-code phase (25-35%):** Largely unchanged by SDD tooling, as expected. Documentation benefits most (AI drafts from specs), aligning with the 0.3-0.5x adjustment.
+
+### Key Tooling Gaps Affecting Estimation
+
+Five gaps limit current applicability of spec-based estimation:
+
+1. **Brownfield spec generation is unsolved** — most estimation is for existing codebases, but generating specs from legacy code remains manual. Until this is solved, spec-based estimation applies primarily to greenfield or well-maintained projects.
+2. **Spec coverage metrics don't exist** — there's no way to measure what percentage of a codebase has specs, making it impossible to know where spec-based estimation is reliable.
+3. **Multi-repo spec coordination is absent** — enterprise systems spanning multiple repos have no standard way to manage cross-repo spec dependencies, adding invisible coordination overhead to estimates.
+4. **Spec-to-estimation intelligence is academic only** — no production tool derives effort ranges from spec complexity. The most promising integration pattern (spec validation + complexity analysis + delivery metrics) does not exist as a product.
+5. **Spec evolution tracking relies on Git** — no semantic diffing or impact analysis exists, meaning spec churn as an estimation input requires manual assessment.
+
+### Adjusted Guidance
+
+For teams with SDD tooling:
+- Use tool-derived spec quality scores to support (not replace) the Context Readiness Assessment
+- Treat SDD-generated task lists as estimation decomposition inputs, but assign effort numbers manually
+- Teams using contract testing (Specmatic/Pact) for API specs may use the lower end of the Rework Factor range
+- Budget the SDD pipeline itself (constitution, specify, clarify, plan, tasks) as Specification phase time — it is not free overhead
+
+---
+
 ## References
 
 All citations reference [../citations.md](citations.md). Key sources per section:
@@ -439,3 +494,4 @@ All citations reference [../citations.md](citations.md). Key sources per section
 | Context Engineering | [3][30][51][52][53][57][77] |
 | Non-Code Work | [21][27][32][33][34][73][74] |
 | Recalibration Protocol | [3][21][23][26][27][49] |
+| Tooling Impact | See `tooling/` survey (March 2026) |
