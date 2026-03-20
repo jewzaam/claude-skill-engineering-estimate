@@ -16,31 +16,63 @@ You are helping a human estimate software development work where AI writes some 
 
 ## Interaction Model
 
-### Before you estimate anything, gather context
+You must complete Steps 1-3 before producing any numbers. A prior version of this skill asked questions about a refinement epic but never read its child tasks — it summarized the epic as a single line item (3-5 days) when the actual children totaled 13-24 person-days. Asking about evidence is not the same as examining it. When tools can read the data, read it.
 
-Do not jump to numbers. Ask the user about what you do not know. The questions below are organized by priority — start with the first group, then ask follow-ups based on answers.
+### Step 1: Research — use tools to gather evidence before asking
+
+If the user provides a JIRA issue key, GitHub repo, or other traceable reference, examine it directly before asking questions. Do not ask the user what the tools can tell you. If no traceable references are provided and no tools can gather evidence, skip directly to Step 3 and rely on the interview. The goal is to arrive at the interview with evidence, not assumptions.
+
+**JIRA investigation** (when a JIRA key is provided):
+- Read the issue description and acceptance criteria — these are the authoritative requirements
+- Read all child issues and subtasks — these reveal scope not visible from the parent description. Enumerate every child, note its status, and assess whether it represents estimable work
+- Read linked issues — these surface dependencies, related features, and blocking work
+- Check the parent epic's children — refinement/delivery process tasks (security assessment, test plan, installer review, cloud impact, build & release, perf/scale) are often tracked as siblings or children that add significant non-code effort
+- Read comments selectively for implementation context, but do not treat comments as requirements
+
+**Codebase investigation** (when a repo is accessible):
+- Check for CLAUDE.md / AGENTS.md / constitution files
+- Check test coverage patterns (test directories, CI config)
+- Look for existing patterns relevant to the task (e.g., existing settings modules, similar features)
+
+**Design document investigation:**
+- Check for SDPs, architecture docs, or PRs in review that relate to the task
+- These reduce spec effort and may surface scope not in the JIRA description
+
+### Step 2: Confirm findings with the user
+
+Present a structured summary of what you found and ask the user to confirm before proceeding. Wrong inputs produce wrong estimates — if the wrong JIRA issues were examined, JIRA data is stale, or the wrong codebase was inspected, everything downstream is invalid. This confirmation step is not optional.
+
+Your summary should include:
+- **Issues examined** — list every JIRA key you read, with title and status. The user can immediately spot if you pulled in the wrong epic, missed a key issue, or are working from outdated data.
+- **Scope as understood** — what you believe the deliverables are, based on the evidence
+- **Dependencies found** — linked issues, external features, blocking work
+- **Non-code activities found** — refinement tasks, process gates, delivery checklist items
+- **Codebase observations** — relevant patterns, existing infrastructure, context readiness factors
+- **What you could not determine** — gaps that need user input
+
+Wait for the user to confirm or correct before estimating. If the user corrects your understanding, update your findings and re-confirm if the correction was significant.
+
+### Step 3: Ask — fill gaps the tools could not answer
+
+After confirming your research, ask about what you still do not know. The questions below are organized by priority — skip any that your research already answered.
 
 **Round 1 — What are we estimating?**
-- What is the task? (Get a concrete description, not a label)
+- What is the task? (Only if the JIRA description is ambiguous or missing)
 - Is this greenfield or modifying existing code?
 - What is the AI workflow? (spec-kit, CLAUDE.md, ad-hoc prompting, Cursor rules, etc.)
 - Do specs exist for this task? If so, how detailed?
-- Are there existing design documents, proposals, or RFCs? (e.g., SDPs, architecture docs, PRs in review). These reduce spec effort and surface scope not visible in the task description.
 
 **Round 2 — Context readiness**
-- Does the project have CLAUDE.md / AGENTS.md / constitution files?
-- Is the codebase well-structured with good test coverage?
 - How experienced is the team with AI tools? (< 3 months = learning curve). If experience varies or is unknown, offer to produce three tiers: beginner, experienced, expert.
 - What is the verification approach? (automated tests, manual QA, review against spec)
 
 **Round 3 — Scope and constraints**
-- Are there non-code activities to budget? (meetings, deployment, stakeholder demos, security review)
-- Are there cross-repo or cross-team dependencies?
+- Are there non-code activities to budget beyond what JIRA shows? (meetings, deployment, stakeholder demos)
+- Are there cross-repo or cross-team dependencies not captured in JIRA links?
 - What is the risk tolerance? (prototype vs production, internal vs customer-facing)
 - Is there historical velocity data from previous AI-assisted sprints?
-- Does the feature have a refinement or delivery process checklist? (e.g., JIRA epics with child tasks for security assessment, test plan, installer review, cloud/SaaS impact, build & release, performance targets). Check the epic's children — missing process activities are the most common source of estimate undercount.
 
-You will rarely need all of these. Use judgment about which matter for the specific task. If the user provides enough context to classify the task and assess context readiness, skip to the estimate — reserve the full interview for ambiguous or high-stakes estimates. When in doubt, ask — do not guess.
+You will rarely need all of these. Use judgment about which matter for the specific task. If the user provides enough context and your research answered most questions, skip to the estimate. When in doubt, ask — do not guess.
 
 Do not produce the estimate output until you have enough context to justify every number in it. If you find yourself guessing values for the Classification, Context Readiness, or Phase Breakdown, you have not asked enough questions yet.
 
@@ -183,7 +215,7 @@ Score interpretation:
 ## Capacity Planning (Sprint-Level)
 
 ```
-Sprint_Capacity = Team_Size x Hours_Per_Sprint x Focus_Factor x AI_Multiplier x (1 - Rework_Factor)
+Sprint_Capacity = Workstream_Count x Hours_Per_Sprint x Focus_Factor x AI_Multiplier x (1 - Rework_Factor)
 ```
 
 | Parameter | Range |
@@ -200,7 +232,21 @@ Sprint_Capacity = Team_Size x Hours_Per_Sprint x Focus_Factor x AI_Multiplier x 
 | Medium (Cat B/C, moderate context) | 0.6x - 1.5x |
 | High (Cat D, poor context, unfamiliar tools) | 0.5x - 2.0x |
 
-## Worked Example
+## Worked Examples
+
+### Example 1: JIRA-based estimate (showing the interaction flow)
+
+**User:** `/engineering-estimate PROJ-1790`
+
+**Step 1 (Research):** Read PROJ-1790 description and 7 user stories. Read parent epic — found 12 child tasks including security assessment, test plan, build & release, installer review, perf/scale, cloud assessment. Read linked issues — found a dependency on an auth feature (in-flight) and an audit export feature (out of scope). Checked for design proposals — found an architecture PR in review.
+
+**Step 2 (Confirm):** "I examined PROJ-1790 (7 user stories), its parent epic (12 refinement tasks), 2 linked issues, and an architecture PR in review. The refinement epic includes build & release, installer review, perf/scale, and cloud assessment — these add an estimated 13-24 person-days of non-code work. Does this scope look correct?"
+
+**Step 3 (Ask):** "Two things I couldn't determine: (1) How experienced is the team with AI tools? (2) How many workstreams can run concurrently?"
+
+**Why this matters:** A prior version of this estimate asked the user about the refinement epic but never read its children. The user answered "Full delivery process" and the skill budgeted 3-5 days for what was actually 13-24 days of concrete tasks. Asking about evidence is not the same as reading it — Step 1 exists to read the data directly so Step 2 can present specifics the user can validate.
+
+### Example 2: Simple estimate (no JIRA)
 
 **Task:** Add JWT authentication to a greenfield web service (spec-kit workflow, CLAUDE.md exists, good test coverage).
 

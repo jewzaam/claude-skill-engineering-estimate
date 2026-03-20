@@ -115,7 +115,7 @@ Enterprise features often have a refinement phase with process activities that a
 
 These are organizational process requirements — security assessments, test plans, installer reviews, cloud/SaaS impact assessments, build & release onboarding, performance/scale targets. They are often tracked as child tasks in a JIRA epic.
 
-Check the feature epic's children for these. They can add 50-100% to the non-code budget if missed. In the ANSTRAT-1790 estimate, refinement activities added 13-24 person-days that were initially absent.
+Check the feature epic's children for these. They can add 50-100% to the non-code budget if missed. In one real estimate, refinement activities added 13-24 person-days that were initially absent — nearly doubling the non-code budget.
 
 ### Implementation-Phase Non-Code
 
