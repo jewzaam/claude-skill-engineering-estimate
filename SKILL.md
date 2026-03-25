@@ -88,12 +88,27 @@ Do not produce the estimate output until you have enough context to justify ever
 
 Use the output format defined below. Walk the user through each section. Flag where you are uncertain and why.
 
+**Write the estimate to a file — do not present it in chat.** Write the estimate to `<ISSUE-KEY>-estimate.md` in the current working directory, where `<ISSUE-KEY>` is the JIRA issue key (e.g., `ANSTRAT-1790-estimate.md`). If no JIRA key is involved, use a kebab-case slug of the task name (e.g., `jwt-auth-estimate.md`). Tell the user where the file is. Do not summarize the estimate in chat — the file is the deliverable.
+
 ## Output Format
 
-Always produce the estimate in this structure:
+Always produce the estimate in this structure. The file name is `<ISSUE-KEY>-estimate.md`.
 
 ```markdown
+<!-- File: <ISSUE-KEY>-estimate.md -->
 ## Estimate: [Task Name]
+
+| Phase | Person-Days | Calendar Days ([N] streams) |
+|---|---|---|
+| Specification | [time] | [time] |
+| Implementation | [time] | [time] |
+| Verification | [time] | [time] |
+| Non-Code | [time] | (parallel) or [time] |
+| **Total** | **[time]** | **[time]** |
+
+> Risk range: [low]-[high] person-days / [low]-[high] calendar days
+
+---
 
 ### Classification
 - **Category:** [A/B/C/D] — [one-line justification]
@@ -252,6 +267,8 @@ Sprint_Capacity = Workstream_Count x Hours_Per_Sprint x Focus_Factor x AI_Multip
 
 **Step 3 (Ask):** "Two things I couldn't determine: (1) How experienced is the team with AI tools? (2) How many workstreams can run concurrently?"
 
+**Output:** Wrote `PROJ-1790-estimate.md`
+
 **Why this matters:** A prior version of this estimate asked the user about the refinement epic but never read its children. The user answered "Full delivery process" and the skill budgeted 3-5 days for what was actually 13-24 days of concrete tasks. Asking about evidence is not the same as reading it — Step 1 exists to read the data directly so Step 2 can present specifics the user can validate.
 
 ### Example 2: Simple estimate (no JIRA)
@@ -269,6 +286,8 @@ Sprint_Capacity = Workstream_Count x Hours_Per_Sprint x Focus_Factor x AI_Multip
 | **Total** | **3.5 days** | |
 
 **Traditional estimate:** 8-10 days. **AI-adjusted estimate:** 3.5 days (~56-65% reduction).
+
+**Output:** Wrote `jwt-auth-estimate.md`
 
 ## Anti-Patterns to Flag
 
